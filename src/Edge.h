@@ -25,7 +25,7 @@ private:
     std::list<Face *> l_ef;
     std::list<Cell *> l_ec;
 
-    // Vertex *EdgePoint;
+    Vertex *EdgePoint;
 
 public:
     // Edge();
@@ -39,7 +39,8 @@ public:
     std::list<Face *> *ef() { return &l_ef; }
     std::list<Cell *> *ec() { return &l_ec; }
 
-
+    void setEdgePoint(Vertex *v){EdgePoint=v;}
+    Vertex* getEdgePoint(){return EdgePoint;}
 };
 
 #endif

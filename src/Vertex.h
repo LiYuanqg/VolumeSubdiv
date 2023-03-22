@@ -20,7 +20,7 @@ private:
     std::list<Edge *> l_ve;
     std::list<Face *> l_vf;
     std::list<Cell *> l_vc;
-    //Vertex* VertexPoint;
+    Vertex* VertexPoint;
 
 public:
     Vertex();
@@ -44,8 +44,8 @@ public:
     std::list<Face *>* vf(){return &l_vf;}
     std::list<Cell *>* vc(){return &l_vc;}
 
-    // Vertex* setVertexPoint();
-    // Vertex* getVertexPoint(){return VertexPoint;}
+    void setVertexPoint(Vertex* v){VertexPoint=v;}
+    Vertex* getVertexPoint(){return VertexPoint;}
 };
 
 #endif

@@ -4,14 +4,41 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <cassert>
 
-Vertex *Mesh::add_vertex(int id)
+int Mesh::update_vid(int _vid)
 {
-    if (m_int_v.count(id) != 0)
-        return m_int_v[id];
-    Vertex *v = new Vertex(id);
+    if (_vid > vid)
+        vid = 1 + _vid;
+    else
+        vid++;
+    return vid;
+}
+int Mesh::update_fid(int _fid)
+{
+    if (_fid > fid)
+        fid = 1 + _fid;
+    else
+        fid++;
+    return fid;
+}
+int Mesh::update_cid(int _cid)
+{
+    if (_cid > cid)
+        cid = 1 + _cid;
+    else
+        cid++;
+    return cid;
+}
+
+Vertex *Mesh::add_vertex(int vid)
+{
+    if (m_int_v.count(vid) != 0)
+        return m_int_v[vid];
+    Vertex *v = new Vertex(vid);
+    update_vid(vid);
     l_v.push_back(v);
-    m_int_v[id] = v;
+    m_int_v[vid] = v;
     return v;
 }
 
@@ -37,17 +64,17 @@ Edge *Mesh::add_edge(Vertex *v1, Vertex *v2)
     return e;
 }
 
-Face *Mesh::add_face(std::vector<int> &num_of_vertices, int id)
+Face *Mesh::add_face(std::vector<Vertex *> &vertices, int fid)
 {
-    if (m_int_f.count(id) != 0)
-        return m_int_f[id];
-    Face *f = new Face(id);
-    int valence = num_of_vertices.size(); // 面f的价（即面f关联的边）
-    f->Valence() = valence;
-    for (int i = 0; i < valence; ++i)
+    if (m_int_f.count(fid) != 0)
+        return m_int_f[fid];
+    Face *f = new Face(fid);
+    update_fid(fid);
+    f->Valence() = vertices.size();
+    for (int i = 0; i < vertices.size(); ++i)
     {
-        Vertex *v1 = add_vertex(num_of_vertices[i]);
-        Vertex *v2 = add_vertex(num_of_vertices[(i + 1) % valence]);
+        Vertex *v1 = vertices[i];
+        Vertex *v2 = vertices[(i + 1) % vertices.size()];
         Edge *e = add_edge(v1, v2);
         f->add_vertex(v1);
         f->add_vertex(v2);
@@ -55,23 +82,35 @@ Face *Mesh::add_face(std::vector<int> &num_of_vertices, int id)
         e->add_face(f);
     }
     l_f.push_back(f);
-    m_int_f.insert(std::pair<int, Face *>(id, f)); // m_int_f[id]=f;
+    m_int_f.insert(std::pair<int, Face *>(fid, f)); // m_int_f[id]=f;
     return f;
 }
 
-Mesh *Mesh::create_mesh(std::vector<Face*> faces){
-    
+Face *Mesh::add_face(std::vector<int> &num_of_vertices, int fid)
+{
+    if (m_int_f.count(fid) != 0)
+        return m_int_f[fid];
+    std::vector<Vertex *> vertices;
+    for (int i = 0; i < num_of_vertices.size(); ++i)
+    {
+        Vertex *v = add_vertex(num_of_vertices[i]);
+        vertices.push_back(v);
+    }
+    Face *f = add_face(vertices, fid);
+    return f;
 }
 
-Cell *Mesh::add_cell(std::vector<int> &num_of_faces, int id)
+Cell *Mesh::add_cell(std::vector<Face *> &faces, int cid)
 {
-    Cell *c = new Cell(id);
-    int valence = num_of_faces.size();
+    if (m_int_c.count(cid) != 0)
+        return m_int_c[cid];
+    Cell *c = new Cell(cid);
+    update_cid(cid);
+    int valence = faces.size();
     c->Valence() = valence;
-    for (int i = 0; i < valence; ++i)
+    for (int i = 0; i < c->Valence(); ++i)
     {
-        assert(m_int_f.count(num_of_faces[i]) != 0); // 这个面一定要存在
-        Face *f = m_int_f[num_of_faces[i]];
+        Face *f = faces[i];
         c->add_face(f);
         f->add_cell(c);
         for (auto it = f->fv()->begin(); it != f->fv()->end(); ++it)
@@ -87,7 +126,71 @@ Cell *Mesh::add_cell(std::vector<int> &num_of_faces, int id)
     return c;
 }
 
-Mesh *Mesh::create_mesh(const std::string &path)
+Cell *Mesh::add_cell(std::vector<int> &num_of_faces, int cid)
+{
+    std::vector<Face *> faces;
+    for (int i = 0; i < num_of_faces.size(); ++i)
+    {
+        assert(m_int_f.count(num_of_faces[i]) != 0); // 这个面一定要存在
+        Face *f = m_int_f[num_of_faces[i]];
+        faces.push_back(f);
+    }
+    Cell *c = add_cell(faces, cid);
+    return c;
+}
+
+Cell *Mesh::createHexFromEightVertex(std::vector<Vertex *> vertices, int cid)
+{
+    assert(vertices.size() == 8);
+    // 从8个点中选取4个点组成一个面
+    std::vector<Vertex *> four_vertices;
+    four_vertices.push_back(vertices[0]);
+    four_vertices.push_back(vertices[1]);
+    four_vertices.push_back(vertices[2]);
+    four_vertices.push_back(vertices[3]);
+    Face *bottom_face = add_face(four_vertices,next_fid());
+
+    four_vertices.clear();
+    four_vertices.push_back(vertices[4]);
+    four_vertices.push_back(vertices[5]);
+    four_vertices.push_back(vertices[6]);
+    four_vertices.push_back(vertices[7]);
+    Face *top_face=add_face(four_vertices,next_fid());
+
+    four_vertices.clear();
+    four_vertices.push_back(vertices[1]);
+    four_vertices.push_back(vertices[5]);
+    four_vertices.push_back(vertices[2]);
+    four_vertices.push_back(vertices[6]);
+    Face *front_face=add_face(four_vertices,next_fid());
+
+    four_vertices.clear();
+    four_vertices.push_back(vertices[7]);
+    four_vertices.push_back(vertices[4]);
+    four_vertices.push_back(vertices[0]);
+    four_vertices.push_back(vertices[3]);
+    Face *back_face=add_face(four_vertices,next_fid());
+
+    four_vertices.clear();
+    four_vertices.push_back(vertices[0]);
+    four_vertices.push_back(vertices[4]);
+    four_vertices.push_back(vertices[5]);
+    four_vertices.push_back(vertices[1]);
+    Face *left_face=add_face(four_vertices,next_fid());
+
+    four_vertices.clear();
+    four_vertices.push_back(vertices[6]);
+    four_vertices.push_back(vertices[7]);
+    four_vertices.push_back(vertices[3]);
+    four_vertices.push_back(vertices[2]);
+    Face *top_face=add_face(four_vertices,next_fid());
+}
+
+Mesh *Mesh::create_mesh(std::vector<Face *> faces)
+{
+}
+
+Mesh *Mesh::read_mesh(const std::string &path)
 {
     std::ifstream fin;
     fin.open(path, std::ios::in);
@@ -106,7 +209,7 @@ Mesh *Mesh::create_mesh(const std::string &path)
         char *token = strtok(line, seps);
         if (token == NULL)
             continue;
-        if (strcmp(token, "v")==0)
+        if (strcmp(token, "v") == 0)
         {
             token = strtok(NULL, seps);
             double x = atof(token);

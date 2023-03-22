@@ -10,7 +10,7 @@
 int main(int argc, char const *argv[])
 {
     Mesh * mesh=new Mesh();
-    mesh->create_mesh("../data/Hex.lyq");
+    //mesh->create_mesh("../data/Hex.lyq");
 
     //输出所有点：
     for(auto it=mesh->vertices()->begin();it!=mesh->vertices()->end();++it){

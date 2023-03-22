@@ -5,12 +5,13 @@
 #include <iterator>
 #include "Edge.h"
 #include "Face.h"
-
+#include "Point.h"
 #include "Vertex.h"
 
 class Edge;
 class Face;
 class Vertex;
+class Point;
 
 class Cell
 {
@@ -22,7 +23,7 @@ private:
     std::list<Edge *> l_ce;
     std::list<Face *> l_cf;
 
-    // Vertex* CellPoint;
+    Vertex* CellPoint;
 
 public:
     Cell(int _id) : id(_id) {}
@@ -37,6 +38,10 @@ public:
     std::list<Vertex *> *cv() { return &l_cv; }
     std::list<Edge *> *ce() { return &l_ce; }
     std::list<Face *> *cf() { return &l_cf; }
+
+    void setCellPoint(Vertex* v){CellPoint=v;}
+    Vertex* getCellPoint(){return CellPoint;}
+
 };
 
 #endif

@@ -23,6 +23,7 @@ private:
     Cell *fc[2];
 
     Vertex* FacePoint;
+    Point FaceCentroid;
 
 public:
     // Face();
@@ -46,8 +47,11 @@ public:
     std::list<Vertex *>* fv(){return &l_fv;}
     std::list<Edge *>* fe(){return &l_fe;}
 
-    Vertex* setFacePoint();
+    void setFacePoint(Vertex *v){FacePoint=v;}
     Vertex* getFacePoint(){return FacePoint;}
+
+    void FaceCentroid(Point p){FaceCentroid = p;}
+    Point getFaceCentroid(){return FaceCentroid;}
 };
 
 #endif
